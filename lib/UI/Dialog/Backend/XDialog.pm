@@ -29,7 +29,7 @@ use UI::Dialog::Backend;
 BEGIN {
     use vars qw( $VERSION @ISA );
     @ISA = qw( UI::Dialog::Backend );
-    $VERSION = '1.00';
+    $VERSION = '1.01';
 }
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -265,7 +265,7 @@ sub _mk_cmnd {
     #  --ok-label <label> !(wizard)
     $cmnd .= ' --ok-label "' . ($args->{'oklabel'}||$args->{'ok-label'}) . '"' unless not $args->{'ok-label'} and not $args->{'oklabel'};
     #  --cancel-label <label> !(wizard)
-    $cmnd .= ' --cancel-label' unless not $args->{'cancel-label'} and not $args->{'cancellabel'};
+    $cmnd .= ' --cancel-label "' . ($args->{'cancellabel'}||$args->{'cancel-label'}) . '"' unless not $args->{'cancel-label'} and not $args->{'cancellabel'};
     #  --beep | --beep-after (all)
     #    $cmnd .= ' --beep' unless not $args->{'beep'};
     #  --ignore-eof (infobox and gauge)

@@ -1,3 +1,7 @@
+1.01
+  * Bugfix from Alfonso E.M. <alfonso@el-magnifico.org> for XDialog cancellabel
+  * updated tests to skip_all that are binary dependant (all except ASCII)
+
 1.00
 
   * Whitespace fixes
