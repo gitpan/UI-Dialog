@@ -23,6 +23,11 @@ console support.
 =head1 DESCRIPTION
 
 This class is simply a nice way to try and ensure a GNOME based widget set.
+The editbox() widget is also provided in addition to the standard widgets as
+both the XDialog and Zenity backends effectively support it's usage. If you
+are still using GDialog and not Zenity (which provides a very nice gdialog
+wrapper) the editbox() widget will cause your application to die with a
+"missing method editbox()" error.
 
 =head1 EXPORT
 
@@ -98,6 +103,40 @@ The (...)'s after each option indicate the default for the option.
 =item B<width = \d+> (65)
 
 =item B<listheight = \d+> (5)
+
+=back
+
+=back
+
+=head1 WIDGET METHODS
+
+=head2 editbox( )
+
+=over 4
+
+=item EXAMPLE
+
+=over 6
+
+ $d->editbox( path => '/path/to/a/text/file' );
+
+=back
+
+=item DESCRIPTION
+
+=over 6
+
+Present the end user with an editable textbox containing the contents
+of the given text file.
+
+=back
+
+=item RETURNS
+
+=over 6
+
+A SCALAR containing the edited text if the response is OK and FALSE (0)
+for anything else.
 
 =back
 

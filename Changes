@@ -1,3 +1,9 @@
+1.02
+  * Added editbox() widget to UI::Dialog::GNOME
+  * Updated UI::Dialog::GNOME pod to include editbox() widget with a gdialog warning
+	in the description of the UI::Dialog::GNOME module
+  * Updated UI::Dialog::Backend::Zenity pod to include editbox() widget
+
 1.01
   * Bugfix from Alfonso E.M. <alfonso@el-magnifico.org> for XDialog cancellabel
   * updated tests to skip_all that are binary dependant (all except ASCII)

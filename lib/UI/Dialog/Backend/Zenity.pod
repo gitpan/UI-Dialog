@@ -266,6 +266,38 @@ TRUE (1) if the response is OK and FALSE (0) for anything else.
 
 =back
 
+=head2 editbox( )
+
+=over 4
+
+=item EXAMPLE
+
+=over 6
+
+ $d->editbox( path => '/path/to/a/text/file' );
+
+=back
+
+=item DESCRIPTION
+
+=over 6
+
+Present the end user with an editable textbox containing the contents
+of the given text file.
+
+=back
+
+=item RETURNS
+
+=over 6
+
+A SCALAR containing the edited text if the response is OK and FALSE (0)
+for anything else.
+
+=back
+
+=back
+
 =head2 menu( )
 
 =over 4
