@@ -27,7 +27,7 @@ use UI::Dialog::Backend;
 BEGIN {
     use vars qw( $VERSION @ISA );
     @ISA = qw( UI::Dialog::Backend );
-    $VERSION = '1.04';
+    $VERSION = '1.05';
 }
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -42,6 +42,15 @@ sub new {
     bless($self, $class);
     $self->{'_state'} = {};
     $self->{'_opts'} = {};
+
+	#: Dynamic path discovery...
+	my $CFG_PATH = $cfg->{'PATH'};
+	if (ref($CFG_PATH) eq "ARRAY") { $self->{'PATHS'} = $CFG_PATH; }
+	elsif ($CFG_PATH =~ m!:!) { $self->{'PATHS'} = [ split(/:/,$CFG_PATH) ]; }
+	elsif (-d $CFG_PATH) { $self->{'PATHS'} = [ $CFG_PATH ]; }
+	elsif ($ENV{'PATH'}) { $self->{'PATHS'} = [ split(/:/,$ENV{'PATH'}) ]; }
+	else { $self->{'PATHS'} = ''; }
+
 	$self->{'_opts'}->{'literal'} = $cfg->{'literal'} || 0;
     $self->{'_opts'}->{'callbacks'} = $cfg->{'callbacks'} || undef();
     $self->{'_opts'}->{'timeout'} = $cfg->{'timeout'} || 0;
@@ -83,6 +92,7 @@ sub new {
     $self->{'_opts'}->{'tab-correct'} = $cfg->{'tab-correct'} || 0;
     $self->{'_opts'}->{'tab-len'} = $cfg->{'tab-len'} || 0;
     $self->{'_opts'}->{'listheight'} = $cfg->{'listheight'} || $cfg->{'menuheight'} || 5;
+    $self->{'_opts'}->{'formheight'} = $cfg->{'formheight'} || $cfg->{'listheight'} || 5;
 
     $self->_determine_dialog_variant();
     return($self);
@@ -94,7 +104,14 @@ sub new {
 sub _determine_dialog_variant {
     my $self = $_[0];
     my $str = `$self->{'_opts'}->{'bin'} --help 2>&1`;
-    if ($str =~ /cdialog\s\(ComeOn\sDialog\!\)\sversion\s(\d+\.\d+.+)/) {
+    if ($str =~ /version\s0\.[34]/m) {
+		# this version does not support colours, so far just FreeBSD 4.8 has this
+		# ancient binary. Bugreport from Jeroen Bulten indicates that he's
+		# got a version 0.3 (patched to 0.4) installed. ugh...
+		$self->{'_variant'} = "dialog";
+		# the separate-output option seems to be the culprit of FreeBSD failure.
+		$self->{'_opts'}->{'force-no-separate-output'} = 1;
+	} elsif ($str =~ /cdialog\s\(ComeOn\sDialog\!\)\sversion\s(\d+\.\d+.+)/) {
 		# We consider cdialog to be a colour supporting dialog variant all others
 		# are non-colourized and support only the base functionality :(
 		my $ver = $1;
@@ -140,7 +157,8 @@ sub _mk_cmnd {
      unless not $args->{'title'} and not $self->{'_opts'}->{'title'};
     $cmnd .= ' --backtitle "' . ($args->{'backtitle'} || $self->{'_opts'}->{'backtitle'}) . '"'
      unless not $args->{'backtitle'} and not $self->{'_opts'}->{'backtitle'};
-    $cmnd .= ' --separate-output' unless not $args->{'separate-output'} and not $self->{'_opts'}->{'separate-output'};
+	$cmnd .= ' --separate-output' unless $self->{'_opts'}->{'force-no-separate-output'}
+	 or (not $args->{'separate-output'} and not $self->{'_opts'}->{'separate-output'});
     if ($self->is_cdialog()) {
 		$cmnd .= ' --colors';
 		$cmnd .= ' --cr-wrap';
@@ -159,7 +177,7 @@ sub _mk_cmnd {
 		$cmnd .= ' --help-label "'.$args->{'help-label'}.'"' unless not $args->{'help-label'};
 		$cmnd .= ' --max-input "'.$args->{'max-input'}.'"' unless not $args->{'max-input'};
 		$cmnd .= ' --no-cancel' unless not $args->{'nocancel'} and not $args->{'no-cancel'};
-		$cmnd .= ' --no-collapse' unless not $args->{'no-collapse'};
+		$cmnd .= ' --no-collapse' unless not $args->{'no-collapse'} and not $args->{'literal'};
 		$cmnd .= ' --no-shadow' unless not $args->{'no-shadow'};
 		$cmnd .= ' --ok-label "'.$args->{'ok-label'}.'"' unless not $args->{'ok-label'};
 		$cmnd .= ' --shadow' unless not $args->{'shadow'};
@@ -219,8 +237,17 @@ sub command_array {
 		close(WHIPF);
 		unlink($tmpfile);
     } else { $text = ""; }
-    return([split("\n",$text)]) unless defined wantarray;
-    return (wantarray) ? ($rv,[split("\n",$text)]) : [split("\n",$text)];
+	if ($self->{'_opts'}->{'force-no-separate-output'}) {
+		# a side effect of this forcible backwards compatibility is that any
+		# "tags" with spaces will get broken down. *shrugs* Not much I can
+		# do about this and because it's a minority of users with these
+		# ancient versions of dialog I'm not delving any deeper into it.
+		return([split(/\s/,$text)]) unless defined wantarray;
+		return (wantarray) ? ($rv,[split(/\s/,$text)]) : [split(/\s/,$text)];
+	} else {
+		return([split("\n",$text)]) unless defined wantarray;
+		return (wantarray) ? ($rv,[split("\n",$text)]) : [split("\n",$text)];
+	}
 }
 sub _organize_text {
     my $self = $_[0];
@@ -673,7 +700,7 @@ sub calendar {
 
     my $command = $self->_mk_cmnd(" --calendar",@_);
     $command .= ' "' . ($args->{'text'}||'') . '"';
-    $command .= ' "' . ($args->{'height'}||'20') . '"';
+    $command .= ' "' . ($args->{'height'}||'6') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'day'}||'') . '"';
     $command .= ' "' . ($args->{'month'}||'') . '"';
@@ -687,6 +714,7 @@ sub calendar {
 		$self->rs('null');
 		$this_rv = 0;
     } else {
+		chomp($date);
 		$self->rv('null');
 		$self->rs($date);
 		$self->ra(split(/\//,$date));
@@ -706,13 +734,15 @@ sub timebox {
     if ($_[0] && $_[0] eq 'caller') { shift(); $caller = shift(); }
     my $args = $self->_pre($caller,@_);
 
+	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+
     my $command = $self->_mk_cmnd(" --timebox",@_);
     $command .= ' "' . ($args->{'text'}||'') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
-    $command .= ' "' . ($args->{'hour'}||'') . '"';
-    $command .= ' "' . ($args->{'minute'}||'') . '"';
-    $command .= ' "' . ($args->{'second'}||'') . '"';
+    $command .= ' "' . ($args->{'hour'}||$hour) . '"';
+    $command .= ' "' . ($args->{'minute'}||$min) . '"';
+    $command .= ' "' . ($args->{'second'}||$sec) . '"';
 
     my ($rv,$time) = $self->command_string($command);
     $self->ra('null');
@@ -722,6 +752,7 @@ sub timebox {
 		$self->rs('null');
 		$this_rv = 0;
     } else {
+		chomp($time);
 		$self->rv('null');
 		$self->rs($time);
 		$self->ra(split(/\:/,$time));
@@ -789,6 +820,52 @@ sub tailboxbg {
     }
     $self->_post($args);
     return($this_rv);
+}
+
+#:+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#: an editable form (wow is this useful! holy cripes!)
+sub form {
+    my $self = shift();
+    my $caller = (caller(1))[3] || 'main';
+    $caller = ($caller =~ /^UI\:\:Dialog\:\:Backend\:\:/) ? ((caller(2))[3]||'main') : $caller;
+    if ($_[0] && $_[0] eq 'caller') { shift(); $caller = shift(); }
+    my $args = $self->_pre($caller,@_);
+
+    $self->{'form'} ||= 'form';
+
+    my $command = $self->_mk_cmnd(" --".$self->{'form'},@_);
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'}))||' ') . '"';
+    $command .= ' "' . ($args->{'height'}||'30') . '"';
+    $command .= ' "' . ($args->{'width'}||'65') . '"';
+    $command .= ' "' . ($args->{'formheight'}||$args->{'menuheight'}||$args->{'listheight'}||'5') . '"';
+
+	# <label1> <l_y1> <l_x1> <item1> <i_y1> <i_x1> <flen1> <ilen1>
+	# [ [ 'label1', 1, 1 ], [ 'item1', 1, 5, 10, 10 ], ... ]
+
+	$args->{'list'} = [ [ 'bad', 1, 1 ], [ 'list', 1, 5, 4, "0" ] ] unless ref($args->{'list'}) eq "ARRAY";
+	my ($item,$info);
+	while (@{$args->{'list'}}) {
+		$item = shift(@{$args->{'list'}}) || [ 'bad', 1, 1 ];
+		$info = shift(@{$args->{'list'}}) || [ 'list', 1, 5, 4, "0" ];
+		$command .= ' "'.($item->[0]||' ').'" "'.$item->[1].'" "'.$item->[2].'" "'.($info->[0]||' ').'" "'.$info->[1].'" "'.$info->[2].'" "'.$info->[3].'" "'.$info->[4].'"';
+	}
+
+    my ($rv,$selected) = $self->command_array($command);
+    $self->rs('null');
+    my $this_rv;
+    if ($rv && $rv >= 1) {
+		$self->rv($rv);
+		$self->ra('null');
+		$this_rv = 0;
+    } else {
+		$self->rv('null');
+		$self->ra(@$selected);
+		$self->rs(join("\n",@$selected));
+		$this_rv = $selected;
+    }
+    $self->_post($args);
+    return($this_rv) unless ref($this_rv) eq "ARRAY";
+    return(@{$this_rv});
 }
 
 # #:+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

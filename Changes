@@ -1,3 +1,21 @@
+1.05 - Wed, 17 Mar 2004 18:26:44 -0500
+  * Added infobox() to CDialog and Whiptail POD
+  * Added calendar(), timebox() and tailbox() to CDialog POD
+  * Now chomping calendar() and timebox() results
+  * CDialog case handling for ancient version 0.3
+  * Dynamic PATH discovery; hard coded or $ENV{'PATH'} or default
+  * Implemented form() method for CDialog
+  * "literal" option now forces --no-collapse for CDialog
+  * Updated CONTRIBUTORS file, now gives credit for what they did too
+
+ -- Kevin C. Krinke <kckrinke@opendoorsoftware.com>
+
+1.04 - Sun, 22 Feb 2004 13:28:35 -0500
+  * fixed the use of Temp::File with qw( tempfile )...
+  * ((note to self; remember to test with _all_ variants before release))
+
+ -- Kevin C. Krinke <kckrinke@opendoorsoftware.com>
+
 1.03 - Wed, 18 Feb 2004 11:35:54 -0500
   * fix for running in X but in a terminal. If there are no gui dialog variants it will now fallback to available console based variants.
   * Stopped undeffing for a slurp and instead use the localized slurp. (doh! my bad!)

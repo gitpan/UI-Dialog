@@ -166,6 +166,37 @@ TRUE (1) for a response of OK or FALSE (0) for anything else.
 
 =back
 
+=head2 infobox( )
+
+=over 4
+
+=item EXAMPLE
+
+=over 6
+
+ $d->infobox( text => 'A simple 6 second message.', timeout => 6000 );
+
+=back
+
+=item DESCRIPTION
+
+=over 6
+
+Pesent the end user with a message box for a limited duration of time. The
+timeout is specified in thousandths of a second, ie: 1000 = 1 second.
+
+=back
+
+=item RETURNS
+
+=over 6
+
+TRUE (1) for a response of OK or FALSE (0) for anything else.
+
+=back
+
+=back
+
 =head2 password( )
 
 =over 4
@@ -329,6 +360,41 @@ anything else.
 
 =back
 
+=head2 form( )
+
+=over 4
+
+=item EXAMPLE
+
+=over 6
+
+ my @data = $d->form( text => 'Select one:',
+                      list => [ [ 'tag1', 1, 1 ], [ 'item1', 1, 10, 10, 10 ],
+                                [ 'tag2', 2, 1 ], [ 'item2', 2, 10, 10, 10 ],
+                                [ 'tag3', 3, 1 ], [ 'item3', 3, 10, 10, 10 ] ]
+                    );
+
+=back
+
+=item DESCRIPTION
+
+=over 6
+
+Present the user with a selectable and potentially editable form.
+
+=back
+
+=item RETURNS
+
+=over 6
+
+an ARRAY of the form data if the response is OK and FALSE (0) for
+anything else.
+
+=back
+
+=back
+
 =head2 radiolist( )
 
 =over 4
@@ -420,6 +486,114 @@ Unlike fselect() this widget will only return a directory selection.
 =over 6
 
 a SCALAR if the response is OK and FALSE (0) for anything else.
+
+=back
+
+=back
+
+=head2 calendar( )
+
+=over 4
+
+=item EXAMPLE
+
+=over 6
+
+ my $date = $d->calendar( text => 'Pick a date...',
+                          day => 1, month => 1, year => 1970 );
+ my ($m,$d,$y) = split(/\//,$date);
+
+ # or alternatively...
+
+ $d->calendar( text => 'Pick a date...',
+               day => 1, month => 1, year => 1970 );
+ ($m,$d,$y) = $d->ra();
+
+=back
+
+=item DESCRIPTION
+
+=over 6
+
+Present the user with a calendar widget preset with the given date or if
+none is specified, use the current date.
+
+=back
+
+=item RETURNS
+
+=over 6
+
+a SCALAR if the response is OK and FALSE (0) for anything else.
+
+=back
+
+=back
+
+=head2 timebox( )
+
+=over 4
+
+=item EXAMPLE
+
+=over 6
+
+ my $time = $d->timebox( text => 'What time?' );
+ my ($h,$m,$s) = split(/\:/,$time);
+
+ # or alternatively...
+
+ $d->timebox( text => 'What time?',
+              hour => 10, minute => 01, second => 01 );
+ my ($h,$m,$s) = $d->ra();
+
+=back
+
+=item DESCRIPTION
+
+=over 6
+
+Present the user with a time widget preset with the current time.
+
+=back
+
+=item RETURNS
+
+=over 6
+
+a SCALAR if the response is OK and FALSE (0) for anything else.
+
+=back
+
+=back
+
+=head2 tailbox( )
+
+=over 4
+
+=item EXAMPLE
+
+=over 6
+
+ $d->tailbox( path => '/path/to/a/text/file' );
+
+=back
+
+=item DESCRIPTION
+
+=over 6
+
+Present the end user with a scrolling box containing the contents
+of the given text file. The contents of the window is constantly updated
+in a similar manner to that of the unix tail(1) command.
+
+=back
+
+=item RETURNS
+
+=over 6
+
+TRUE (1) if the response is OK and FALSE (0) for anything else.
 
 =back
 

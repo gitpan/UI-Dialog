@@ -168,6 +168,37 @@ TRUE (1) for a response of OK or FALSE (0) for anything else.
 
 =back
 
+=head2 infobox( )
+
+=over 4
+
+=item EXAMPLE
+
+=over 6
+
+ $d->infobox( text => 'A simple 6 second message.', timeout => 6000 );
+
+=back
+
+=item DESCRIPTION
+
+=over 6
+
+Pesent the end user with a message box for a limited duration of time. The
+timeout is specified in thousandths of a second, ie: 1000 = 1 second.
+
+=back
+
+=item RETURNS
+
+=over 6
+
+TRUE (1) for a response of OK or FALSE (0) for anything else.
+
+=back
+
+=back
+
 =head2 password( )
 
 =over 4

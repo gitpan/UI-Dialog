@@ -24,7 +24,7 @@ use UI::Dialog;
 BEGIN {
     use vars qw( $VERSION @ISA );
     @ISA = qw( UI::Dialog );
-    $VERSION = '1.04';
+    $VERSION = '1.05';
 }
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -39,7 +39,15 @@ sub new {
     bless($self, $class);
 
     $self->{'debug'} = $cfg->{'debug'} || 0;
-    $self->{'PATH'} = $cfg->{'PATH'} || '';
+
+	#: Dynamic path discovery...
+	my $CFG_PATH = $cfg->{'PATH'};
+	if (ref($CFG_PATH) eq "ARRAY") { $self->{'PATHS'} = $CFG_PATH; }
+	elsif ($CFG_PATH =~ m!:!) { $self->{'PATHS'} = [ split(/:/,$CFG_PATH) ]; }
+	elsif (-d $CFG_PATH) { $self->{'PATHS'} = [ $CFG_PATH ]; }
+	elsif ($ENV{'PATH'}) { $self->{'PATHS'} = [ split(/:/,$ENV{'PATH'}) ]; }
+	else { $self->{'PATHS'} = ''; }
+
     $cfg->{'order'} ||= [ 'zenity', 'xdialog', 'gdialog' ];
 
     $self->_debug("ENV->UI_DIALOGS: ".($ENV{'UI_DIALOGS'}||'NULL'),2);
