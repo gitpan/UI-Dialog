@@ -25,7 +25,7 @@ use Text::Wrap qw( wrap );
 
 BEGIN {
     use vars qw($VERSION);
-    $VERSION = '1.03';
+    $VERSION = '1.04';
 }
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -219,7 +219,7 @@ sub gen_tempfile_name {
     my $self = $_[0];
     my $template = $self->{'_opts'}->{'tempfiletemplate'} || "UI_Dialog_tempfile_XXXXX";
     if (eval("require File::Temp; 1")) {
-		use File::Temp;
+		use File::Temp qw( tempfile );
 		my ($fh,$filename) = tempfile( UNLINK => 1 ) or croak( "Can't create tempfile: $!" );
 		return($filename) unless wantarray;
 		return($fh,$filename);
