@@ -1,3 +1,10 @@
+1.08 - Sat, 02 Oct 2004 00:05:34 -0400
+
+  * UI::Dialog::Backend::Nautilus now correctly determins the user's desktop directory using Gnome2::GConf (if found) or via kludge.
+  * Bugfix for improper Zenity version string handling
+
+ -- Kevin C. Krinke <kckrinke@opendoorsoftware.com>
+
 1.07 - Wed, 21 Jul 2004 14:52:30 -0500
   * Bugfix for checklist failing to work with an empty user selection
 

@@ -1,6 +1,6 @@
 package UI::Dialog::Backend::GDialog;
 ###############################################################################
-#  Copyright (C) 2003  Kevin C. Krinke <kckrinke@opendoorsoftware.com>
+#  Copyright (C) 2004  Kevin C. Krinke <kckrinke@opendoorsoftware.com>
 #
 #  This library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public
@@ -25,7 +25,7 @@ use UI::Dialog::Backend;
 BEGIN {
     use vars qw( $VERSION @ISA );
     @ISA = qw( UI::Dialog::Backend );
-    $VERSION = '1.07';
+    $VERSION = '1.08';
 }
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,6 +1,6 @@
 package UI::Dialog::Backend::Nautilus;
 ###############################################################################
-#  Copyright (C) 2003  Kevin C. Krinke <kckrinke@opendoorsoftware.com>
+#  Copyright (C) 2004  Kevin C. Krinke <kckrinke@opendoorsoftware.com>
 #
 #  This library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public
@@ -27,7 +27,7 @@ use Carp;
 
 BEGIN {
     use vars qw($VERSION);
-    $VERSION = '1.07';
+    $VERSION = '1.08';
 }
 
 sub new {
@@ -97,8 +97,9 @@ sub paths {
 		my @paths = ();
 		foreach my $uri ($self->uris()) {
 			my $path = $uri;
+            my $desktop = $self->_get_desktop_dir();
 			$path =~ s!^x\-nautilus\-desktop\:///trash!$ENV{'HOME'}/.Trash!;
-			$path =~ s!^x\-nautilus\-desktop\://!$ENV{'HOME'}/Desktop!;
+			$path =~ s!^x\-nautilus\-desktop\://!$desktop!;
 			push(@paths,$self->uri_unescape($path));
 		}
 		return(@paths);
@@ -118,8 +119,9 @@ sub path {
     my $self = shift();
     return('error') unless $self->_is_env();
     my $URI = $ENV{'NAUTILUS_SCRIPT_CURRENT_URI'} || '';
+    my $desktop = $self->_get_desktop_dir();
 	$URI =~ s!^x\-nautilus\-desktop\:///trash!$ENV{'HOME'}/.Trash!;
-	$URI =~ s!^x\-nautilus\-desktop\://!$ENV{'HOME'}/Desktop!;
+	$URI =~ s!^x\-nautilus\-desktop\://!$desktop!;
     return(($self->uri_unescape($URI)||$URI));
 }
 
@@ -139,5 +141,32 @@ sub geometry {
     } else { return(0,0,0,0); }
 }
 
+sub _get_desktop_dir {
+    my $self = shift();
+    my $desktop_dir = $ENV{'HOME'} . "/Desktop";
+    if ( eval { require Gnome2::GConf; 1; } ) {
+        use Gnome2::GConf;
+        my $gconf = Gnome2::GConf::Client->get_default();
+        $desktop_dir = $ENV{'HOME'}
+         if $gconf->get_bool( '/apps/nautilus/preferences/desktop_is_home_dir' );
+    } else {
+        my $gconf_xml = $ENV{'HOME'} . '/.gconf/apps/nautilus/preferences/%gconf.xml';
+        if ( -r $gconf_xml ) {
+            if ( open( GCONF, "<" . $gconf_xml ) ) {
+                my $RAW = undef;
+                {
+                    local $/;
+                    $RAW = <GCONF>;
+                }
+                close( GCONF );
+                #        <entry name="desktop_is_home_dir" mtime="1090894369" type="bool" value="true">
+                if ( $RAW =~ m!\s+[^"]+\"desktop_is_home_dir\"[^"]+\"\d*\"[^"]+\"bool\"\svalue=\"false\"\>! ) {
+                    $desktop_dir = $ENV{'HOME'};
+                }
+            }
+        }
+    }
+    return( $desktop_dir );
+}
 
 1;

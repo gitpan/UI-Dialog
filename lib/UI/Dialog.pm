@@ -1,6 +1,6 @@
 package UI::Dialog;
 ###############################################################################
-#  Copyright (C) 2003  Kevin C. Krinke <kckrinke@opendoorsoftware.com>
+#  Copyright (C) 2004  Kevin C. Krinke <kckrinke@opendoorsoftware.com>
 #
 #  This library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,7 @@ use Carp;
 
 BEGIN {
     use vars qw($VERSION);
-    $VERSION = '1.07';
+    $VERSION = '1.08';
 }
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -900,7 +900,7 @@ Kevin C. Krinke, E<lt>kckrinke@opendoorsoftware.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
- Copyright (C) 2003  Kevin C. Krinke <kckrinke@opendoorsoftware.com>
+ Copyright (C) 2004  Kevin C. Krinke <kckrinke@opendoorsoftware.com>
 
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public

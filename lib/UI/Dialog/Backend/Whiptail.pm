@@ -1,6 +1,6 @@
 package UI::Dialog::Backend::Whiptail;
 ###############################################################################
-#  Copyright (C) 2003  Kevin C. Krinke <kckrinke@opendoorsoftware.com>
+#  Copyright (C) 2004  Kevin C. Krinke <kckrinke@opendoorsoftware.com>
 #
 #  This library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,7 @@ use UI::Dialog::Backend;
 BEGIN {
     use vars qw( $VERSION @ISA );
     @ISA = qw( UI::Dialog::Backend );
-    $VERSION = '1.07';
+    $VERSION = '1.08';
 }
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -123,7 +123,7 @@ sub command_string {
     my $text;
     system($cmnd." 2> ".$tmpfile);
     my $rv = $? >> 8;
-    if (-f $tmpfile # don't assume the file exists
+    if (-f $tmpfile             # don't assume the file exists
 		&& open(WHIPF,"<".$tmpfile)) {
 		local $/;
 		$text = <WHIPF>;
@@ -142,7 +142,7 @@ sub command_array {
     my $text;
     system($cmnd." 2> ".$tmpfile);
     my $rv = $? >> 8;
-    if (-f $tmpfile # don't assume the file exists
+    if (-f $tmpfile             # don't assume the file exists
 		&& open(WHIPF,"<".$tmpfile)) {
 		local $/;
 		$text = <WHIPF>;
@@ -158,7 +158,7 @@ sub _organize_text {
     my $self = $_[0];
     my $text = $_[1] || return();
     my $width = $_[2] || 65;
-	$width -= 4;  # take account of borders
+	$width -= 4;                # take account of borders
     my @array;
 
     if (ref($text) eq "ARRAY") { push(@array,@{$text}); }

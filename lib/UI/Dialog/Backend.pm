@@ -1,6 +1,6 @@
 package UI::Dialog::Backend;
 ###############################################################################
-#  Copyright (C) 2003  Kevin C. Krinke <kckrinke@opendoorsoftware.com>
+#  Copyright (C) 2004  Kevin C. Krinke <kckrinke@opendoorsoftware.com>
 #
 #  This library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public
@@ -25,7 +25,7 @@ use Text::Wrap qw( wrap );
 
 BEGIN {
     use vars qw($VERSION);
-    $VERSION = '1.07';
+    $VERSION = '1.08';
 }
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -65,7 +65,7 @@ sub nautilus {
 #: Provide the API interface to osd_cat (aka: xosd)
 sub xosd {
     my $self = shift();
-    my @args = (@_) ? @_ : ();
+    my @args = (@_ %2 == 0) ? (@_) : ();
     my $xosd = $self->{'_xosd'} || {};
     unless (ref($xosd) eq "UI::Dialog::Backend::XOSD") {
 		if ($self->_find_bin('osd_cat')) {

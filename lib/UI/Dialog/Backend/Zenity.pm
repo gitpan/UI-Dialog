@@ -1,6 +1,6 @@
 package UI::Dialog::Backend::Zenity;
 ###############################################################################
-#  Copyright (C) 2003  Kevin C. Krinke <kckrinke@opendoorsoftware.com>
+#  Copyright (C) 2004  Kevin C. Krinke <kckrinke@opendoorsoftware.com>
 #
 #  This library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,7 @@ use UI::Dialog::Backend;
 BEGIN {
     use vars qw( $VERSION @ISA );
     @ISA = qw( UI::Dialog::Backend );
-    $VERSION = '1.07';
+    $VERSION = '1.08';
 }
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -74,7 +74,9 @@ sub new {
 		croak("the zenity binary could not be found at: ".$self->{'_opts'}->{'bin'});
     }
 
-    chomp(my $version = $self->command_string($self->{'_opts'}->{'bin'}." --version"));
+    my $command = $self->{'_opts'}->{'bin'}." --version";
+    my $version = `$command 2>&1`;
+    chomp( $version );
     $self->{'ZENITY_VERSION'} = $version || '1';
 
     return($self);
@@ -120,11 +122,21 @@ sub _mk_cmnd {
 
     return($cmnd);
 }
-sub _is_version {
+sub _is_bad_version {
     my $self = shift();
-    my $desired_version = shift() || $self->{'ZENITY_VERSION'} || '1';
-    if ($desired_version <= ($self->{'ZENITY_VERSION'}||'1')) { return(1); }
-    else { return(0); }
+    my ($d_maj, $d_min, $d_mac) = ( 1, 4, 0 );
+    my ($z_maj, $z_min, $z_mac) = ( 0, 0, 0 );
+    my $zenity_version = $self->{'ZENITY_VERSION'} || '0.0.0';
+    if ( $zenity_version =~ m!^(\d+)\.(\d+)\.(\d+)$! ) {
+        ($z_maj, $z_min, $z_mac) = ( $1, $2, $3 );
+    }
+    if ( ( $d_maj <  $z_maj                                        ) ||
+         ( $d_maj == $z_maj && $d_min <  $z_min                    ) ||
+         ( $d_maj == $z_maj && $d_min == $z_min && $d_mac < $z_mac )
+       ) {
+        return(0);
+    }
+    return(1);
 }
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -148,7 +160,7 @@ sub command_string {
     my $cmnd = $_[1];
     $self->_debug("command: ".$cmnd,1);
     my $text;
-    if ($self->_is_version("1.4")) {
+    if ($self->_is_bad_version()) {
 		#we should ignore STDERR...
 		chomp($text = `$cmnd`);
     } else {
@@ -166,7 +178,7 @@ sub command_array {
     my $cmnd = $_[1];
     $self->_debug("command: ".$cmnd,1);
     my $text;
-    if ($self->_is_version("1.4")) {
+    if ($self->_is_bad_version()) {
 		#we should ignore STDERR...
 		chomp($text = `$cmnd`);
     } else {
