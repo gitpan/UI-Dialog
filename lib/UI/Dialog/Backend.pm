@@ -25,7 +25,7 @@ use Text::Wrap qw( wrap );
 
 BEGIN {
     use vars qw($VERSION);
-    $VERSION = '1.06';
+    $VERSION = '1.07';
 }
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -104,6 +104,7 @@ sub ra {
     $self->_debug((join(" | ",(caller())))." > ra() > rset: ".((@_) ? "@_" : 'NULL'),3);
     $self->{'_state'}->{'ra'} = ($_[0] =~ /^null$/i) ? [ 0 ] : [ @_ ] unless not @_;
     my $aref = $self->{'_state'}->{'ra'};
+	ref($aref) eq "ARRAY" or $aref = [];
     return(@{$aref});
 }
 

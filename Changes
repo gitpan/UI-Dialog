@@ -1,3 +1,8 @@
+1.07 - Wed, 21 Jul 2004 14:52:30 -0500
+  * Bugfix for checklist failing to work with an empty user selection
+
+ -- Kevin C. Krinke <kckrinke@opendoorsoftware.com>
+
 1.06 - Thu, 18 Mar 2004 10:55:24 -0500
   * Bugfix for dynamic path discovery.
 
