@@ -35,7 +35,7 @@ use FileHandle;
 BEGIN {
     use vars qw( $VERSION @ISA );
     @ISA = qw( UI::Dialog::Backend );
-    $VERSION = '1.05';
+    $VERSION = '1.06';
 }
 
 sub new {
@@ -48,10 +48,11 @@ sub new {
 
 	#: Dynamic path discovery...
 	my $CFG_PATH = $cfg->{'PATH'};
-	if (ref($CFG_PATH) eq "ARRAY") { $self->{'PATHS'} = $CFG_PATH; }
-	elsif ($CFG_PATH =~ m!:!) { $self->{'PATHS'} = [ split(/:/,$CFG_PATH) ]; }
-	elsif (-d $CFG_PATH) { $self->{'PATHS'} = [ $CFG_PATH ]; }
-	elsif ($ENV{'PATH'}) { $self->{'PATHS'} = [ split(/:/,$ENV{'PATH'}) ]; }
+	if ($CFG_PATH) {
+		if (ref($CFG_PATH) eq "ARRAY") { $self->{'PATHS'} = $CFG_PATH; }
+		elsif ($CFG_PATH =~ m!:!) { $self->{'PATHS'} = [ split(/:/,$CFG_PATH) ]; }
+		elsif (-d $CFG_PATH) { $self->{'PATHS'} = [ $CFG_PATH ]; }
+	} elsif ($ENV{'PATH'}) { $self->{'PATHS'} = [ split(/:/,$ENV{'PATH'}) ]; }
 	else { $self->{'PATHS'} = ''; }
 
     $self->{'_opts'}->{'bin'} = $self->_find_bin('osd_cat');
