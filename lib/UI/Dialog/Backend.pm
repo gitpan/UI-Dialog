@@ -18,8 +18,6 @@ package UI::Dialog::Backend;
 ###############################################################################
 use 5.006;
 use strict;
-use warnings;
-use diagnostics;
 use Carp;
 use Cwd qw( abs_path );
 use File::Basename;
@@ -27,7 +25,7 @@ use Text::Wrap qw( wrap );
 
 BEGIN {
     use vars qw($VERSION);
-    $VERSION = '1.02';
+    $VERSION = '1.03';
 }
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -221,11 +219,13 @@ sub gen_tempfile_name {
     my $self = $_[0];
     my $template = $self->{'_opts'}->{'tempfiletemplate'} || "UI_Dialog_tempfile_XXXXX";
     if (eval("require File::Temp; 1")) {
-		use File::Temp qw( mktemp );
-		return(File::Temp::mktemp($template));
+		use File::Temp;
+		my ($fh,$filename) = tempfile( UNLINK => 1 ) or croak( "Can't create tempfile: $!" );
+		return($filename) unless wantarray;
+		return($fh,$filename);
     } else {
 		my $mktemp = $self->_find_bin('mktemp');
-		if (-x $mktemp) {
+		if ($mktemp && -x $mktemp) {
 			chomp(my $tempfile = `$mktemp "$template"`);
 			return($tempfile);
 		} else {
@@ -238,8 +238,10 @@ sub gen_tempfile_name {
 					$tempdir = ".";
 				}
 			}
+			$self->gen_random_string(5);
 			my $tempfile = "UI_Dialog_tempfile_".$self->gen_random_string(5);
 			while (-e $tempdir."/".$tempfile) {
+				$self->gen_random_string(5);
 				$tempfile = "UI_Dialog_tempfile_".$self->gen_random_string(5);
 			}
 			return($tempdir."/".$tempfile);

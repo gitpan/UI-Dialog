@@ -18,8 +18,6 @@ package UI::Dialog::Backend::Whiptail;
 ###############################################################################
 use 5.006;
 use strict;
-use warnings;
-use diagnostics;
 use FileHandle;
 use Carp;
 use Time::HiRes qw( sleep );
@@ -28,7 +26,7 @@ use UI::Dialog::Backend;
 BEGIN {
     use vars qw( $VERSION @ISA );
     @ISA = qw( UI::Dialog::Backend );
-    $VERSION = '1.02';
+    $VERSION = '1.03';
 }
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -43,6 +41,7 @@ sub new {
     bless($self, $class);
     $self->{'_state'} = {};
     $self->{'_opts'} = {};
+	$self->{'_opts'}->{'literal'} = $cfg->{'literal'} || 0;
     $self->{'_opts'}->{'callbacks'} = $cfg->{'callbacks'} || undef();
     $self->{'_opts'}->{'debug'} = $cfg->{'debug'} || undef();
     $self->{'_opts'}->{'title'} = $cfg->{'title'} || undef();
@@ -109,15 +108,16 @@ sub command_string {
     my $self = $_[0];
     my $cmnd = $_[1];
     $self->_debug($cmnd);
+    $self->gen_tempfile_name(); # don't accept the first result
     my $tmpfile = $self->gen_tempfile_name();
     my $text;
     system($cmnd." 2> ".$tmpfile);
     my $rv = $? >> 8;
-    my $TS = $/; undef($/);
-    if (open(WHIPF,"<".$tmpfile)) {
+    if (-f $tmpfile # don't assume the file exists
+		&& open(WHIPF,"<".$tmpfile)) {
+		local $/;
 		$text = <WHIPF>;
 		close(WHIPF);
-		$/ = $TS;
 		unlink($tmpfile);
     } else { $text = ""; }
     return($text) unless defined wantarray;
@@ -127,15 +127,16 @@ sub command_array {
     my $self = $_[0];
     my $cmnd = $_[1];
     $self->_debug($cmnd);
+    $self->gen_tempfile_name(); # don't accept the first result
     my $tmpfile = $self->gen_tempfile_name();
     my $text;
     system($cmnd." 2> ".$tmpfile);
     my $rv = $? >> 8;
-    my $TS = $/; undef($/);
-    if (open(WHIPF,"<".$tmpfile)) {
+    if (-f $tmpfile # don't assume the file exists
+		&& open(WHIPF,"<".$tmpfile)) {
+		local $/;
 		$text = <WHIPF>;
 		close(WHIPF);
-		$/ = $TS;
 		unlink($tmpfile);
     } else { $text = ""; }
     return([split("\n",$text)]) unless defined wantarray;
@@ -147,6 +148,7 @@ sub _organize_text {
     my $self = $_[0];
     my $text = $_[1] || return();
     my $width = $_[2] || 65;
+	$width -= 4;  # take account of borders
     my @array;
 
     if (ref($text) eq "ARRAY") { push(@array,@{$text}); }
@@ -205,7 +207,7 @@ sub yesno {
     my $args = $self->_pre($caller,@_);
 
     my $command = $self->_mk_cmnd(' --yesno',@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
 
@@ -240,7 +242,7 @@ sub inputbox {
     my $cmnd_prefix = ' --inputbox';
     if ($args->{'password'}) { $cmnd_prefix = ' --passwordbox'; }
     my $command = $self->_mk_cmnd($cmnd_prefix,@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'init'}||$args->{'entry'}||'') . '"'
@@ -280,7 +282,7 @@ sub msgbox {
     $args->{'msgbox'} ||= 'msgbox';
 
     my $command = $self->_mk_cmnd(' --scrolltext --'.$args->{'msgbox'},@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
 
@@ -347,7 +349,7 @@ sub menu {
     my $args = $self->_pre($caller,@_);
 
     my $command = $self->_mk_cmnd(" --menu",@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'menuheight'}||$args->{'listheight'}||'5') . '"';
@@ -388,7 +390,7 @@ sub checklist {
     $self->{'checklist'} ||= 'checklist';
 
     my $command = $self->_mk_cmnd(" --".$self->{'checklist'},@_,'separate-output',1);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'menuheight'}||$args->{'listheight'}||'5') . '"';
@@ -434,7 +436,7 @@ sub radiolist {
     $self->{'radiolist'} ||= 'radiolist';
 
     my $command = $self->_mk_cmnd(" --".$self->{'radiolist'},@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'menuheight'}||$args->{'listheight'}||'5') . '"';
@@ -490,7 +492,7 @@ sub gauge_start {
     }
 
     my $command = $self->_mk_cmnd(" --gauge",@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'percentage'}||'0') . '"';

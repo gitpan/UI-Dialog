@@ -18,8 +18,6 @@ package UI::Dialog::Backend::KDialog;
 ###############################################################################
 use 5.006;
 use strict;
-use warnings;
-use diagnostics;
 use Carp;
 use Cwd qw( abs_path );
 use UI::Dialog::Backend;
@@ -27,7 +25,7 @@ use UI::Dialog::Backend;
 BEGIN {
     use vars qw( $VERSION @ISA );
     @ISA = qw( UI::Dialog::Backend );
-    $VERSION = '1.02';
+    $VERSION = '1.03';
 }
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -42,6 +40,7 @@ sub new {
     bless($self, $class);
     $self->{'_state'} = {};
     $self->{'_opts'} = {};
+	$self->{'_opts'}->{'literal'} = $cfg->{'literal'} || 0;
     $self->{'_opts'}->{'callbacks'} = $cfg->{'callbacks'} || undef();
     $self->{'_opts'}->{'debug'} = $cfg->{'debug'} || undef();
     $self->{'_opts'}->{'caption'} = $cfg->{'caption'} || undef();
@@ -148,7 +147,7 @@ sub yesno {
     $args->{'yesno'} ||= "yesno";
 
     my $command = $self->_mk_cmnd(' --'.$args->{'yesno'},@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
 
     my $rv = $self->command_state($command);
     $self->rv($rv||'null');
@@ -201,7 +200,7 @@ sub inputbox {
     $args->{'inputbox'} ||= 'inputbox';
 
     my $command = $self->_mk_cmnd(' --'.$args->{'inputbox'},@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'init'}||$args->{'entry'}||'') . '"'
      unless
       (not $args->{'init'} and not $args->{'entry'})
@@ -239,7 +238,7 @@ sub msgbox {
     $args->{'msgbox'} ||= 'msgbox';
 
     my $command = $self->_mk_cmnd(' --'.$args->{'msgbox'},@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
 
     my $rv = $self->command_state($command);
     $self->rv($rv||'null');
@@ -301,7 +300,7 @@ sub menu {
     my $args = $self->_pre($caller,@_);
 
     my $command = $self->_mk_cmnd(" --menu",@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
 
     if ($args->{'list'}) {
 		$args->{'list'} = [ ' ', ' ' ] unless ref($args->{'list'}) eq "ARRAY";
@@ -343,7 +342,7 @@ sub checklist {
     $self->{'checklist'} ||= 'checklist';
 
     my $command = $self->_mk_cmnd(" --".$self->{'checklist'},@_,'separate-output',1);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
 
     if ($args->{'list'}) {
 		$args->{'list'} = [ ' ', [' ', 1] ] unless ref($args->{'list'}) eq "ARRAY";
@@ -388,7 +387,7 @@ sub radiolist {
     $self->{'radiolist'} ||= 'radiolist';
 
     my $command = $self->_mk_cmnd(" --".$self->{'radiolist'},@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
 
     if ($args->{'list'}) {
 		$args->{'list'} = [ ' ', [' ', 1] ] unless ref($args->{'list'}) eq "ARRAY";

@@ -86,6 +86,8 @@ decided during object creation.
 
 =item B<debug = 0,1,2> (0)
 
+=item B<literal = 0,1> (0)
+
 =item B<PATH = [ /bin, /usr/bin, /usr/local/bin, /opt/bin ]> (as indicated)
 
 =item B<wmclass = "name"> ('') *

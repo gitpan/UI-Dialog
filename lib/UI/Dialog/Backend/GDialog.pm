@@ -18,8 +18,6 @@ package UI::Dialog::Backend::GDialog;
 ###############################################################################
 use 5.006;
 use strict;
-use warnings;
-use diagnostics;
 use FileHandle;
 use Carp;
 use UI::Dialog::Backend;
@@ -27,7 +25,7 @@ use UI::Dialog::Backend;
 BEGIN {
     use vars qw( $VERSION @ISA );
     @ISA = qw( UI::Dialog::Backend );
-    $VERSION = '1.02';
+    $VERSION = '1.03';
 }
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -42,6 +40,7 @@ sub new {
     bless($self, $class);
     $self->{'_state'} = {};
     $self->{'_opts'} = {};
+	$self->{'_opts'}->{'literal'} = $cfg->{'literal'} || 0;
     $self->{'_opts'}->{'callbacks'} = $cfg->{'callbacks'} || undef();
     $self->{'_opts'}->{'debug'} = $cfg->{'debug'} || undef();
     $self->{'_opts'}->{'title'} = $cfg->{'title'} || undef();
@@ -113,7 +112,7 @@ sub yesno {
     my $args = $self->_pre($caller,@_);
 
     my $command = $self->_mk_cmnd(' --yesno',@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
 
@@ -144,7 +143,7 @@ sub inputbox {
     my $args = $self->_pre($caller,@_);
 
     my $command = $self->_mk_cmnd(' --inputbox',@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'init'}||'') . '"'
@@ -185,7 +184,7 @@ sub msgbox {
     $args->{'msgbox'} ||= 'msgbox';
 
     my $command = $self->_mk_cmnd(' --'.$args->{'msgbox'},@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
 
@@ -247,7 +246,7 @@ sub menu {
     my $args = $self->_pre($caller,@_);
 
     my $command = $self->_mk_cmnd(" --menu",@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'menuheight'}||$args->{'listheight'}||'5') . '"';
@@ -292,7 +291,7 @@ sub checklist {
     $self->{'checklist'} ||= 'checklist';
 
     my $command = $self->_mk_cmnd(" --".$self->{'checklist'},@_,'separate-output',1);
-    $command .= ' "' . ($self->_organize_text($args->{'text'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'menuheight'}||$args->{'listheight'}||'5') . '"';
@@ -340,7 +339,7 @@ sub radiolist {
     $self->{'radiolist'} ||= 'radiolist';
 
     my $command = $self->_mk_cmnd(" --".$self->{'radiolist'},@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'menuheight'}||$args->{'listheight'}||'5') . '"';
@@ -386,7 +385,7 @@ sub radiolist {
 #     $self->_beep($args->{'beepbefore'});
 
 #     my $command = $self->_mk_cmnd(" --gauge",@_);
-#     $command .= ' "' . ($self->_organize_text($args->{'text'})||' ') . '"';
+#    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'}))||' ') . '"';
 #     $command .= ' "' . ($args->{'height'}||'20') . '"';
 #     $command .= ' "' . ($args->{'width'}||'65') . '"';
 #     $command .= ' "' . ($args->{'percentage'}||'0') . '"';

@@ -79,6 +79,8 @@ The (...)'s after each option indicate the default for the option.
 
 =item B<debug = 0,1,2> (0)
 
+=item B<literal = 0,1> (0)
+
 =item B<backtitle = "backtitle"> ('')
 
 =item B<title = "title"> ('')

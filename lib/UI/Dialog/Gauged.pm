@@ -18,13 +18,11 @@ package UI::Dialog::Gauged;
 ###############################################################################
 use 5.006;
 use strict;
-use warnings;
-use diagnostics;
 use Carp;
 
 BEGIN {
     use vars qw($VERSION);
-    $VERSION = '1.02';
+    $VERSION = '1.03';
 }
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

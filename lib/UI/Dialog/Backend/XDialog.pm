@@ -18,8 +18,6 @@ package UI::Dialog::Backend::XDialog;
 ###############################################################################
 use 5.006;
 use strict;
-use warnings;
-use diagnostics;
 use FileHandle;
 use File::Basename;
 use Carp;
@@ -29,7 +27,7 @@ use UI::Dialog::Backend;
 BEGIN {
     use vars qw( $VERSION @ISA );
     @ISA = qw( UI::Dialog::Backend );
-    $VERSION = '1.02';
+    $VERSION = '1.03';
 }
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -46,6 +44,8 @@ sub new {
     $self->{'_opts'} = {};
 
     $self->{'_opts'}->{'debug'} = $cfg->{'debug'} || undef();
+
+	$self->{'_opts'}->{'literal'} = $cfg->{'literal'} || 0;
 
     $self->{'_opts'}->{'XDIALOG_HIGH_DIALOG_COMPAT'} = 1
      unless not $cfg->{'XDIALOG_HIGH_DIALOG_COMPAT'};
@@ -319,7 +319,7 @@ sub combobox {
     my $args = $self->_pre($caller,@_);
 
     my $command = $self->_mk_cmnd(" --separate-output --combobox",@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
 
@@ -364,7 +364,7 @@ sub rangebox {
     my $args = $self->_pre($caller,@_);
 
     my $command = $self->_mk_cmnd(" --rangebox",@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'min'}||'0') . '"';
@@ -399,7 +399,7 @@ sub rangesbox2 {
     my $args = $self->_pre($caller,@_);
 
     my $command = $self->_mk_cmnd(" --separate-output --2rangesbox",@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'label1'}||' ') . '"';
@@ -440,7 +440,7 @@ sub rangesbox3 {
     my $args = $self->_pre($caller,@_);
 
     my $command = $self->_mk_cmnd(" --separate-output --3rangesbox",@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'label1'}||' ') . '"';
@@ -485,7 +485,7 @@ sub spinbox {
     my $args = $self->_pre($caller,@_);
 
     my $command = $self->_mk_cmnd(" --separate-output --spinbox",@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'min1'}||'0') . '"';
@@ -521,7 +521,7 @@ sub spinsbox2 {
     my $args = $self->_pre($caller,@_);
 
     my $command = $self->_mk_cmnd(" --separate-output --2spinsbox",@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'min1'}||'0') . '"';
@@ -562,7 +562,7 @@ sub spinsbox3 {
     my $args = $self->_pre($caller,@_);
 
     my $command = $self->_mk_cmnd(" --separate-output --3spinsbox",@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'min1'}||'0') . '"';
@@ -609,7 +609,7 @@ sub buildlist {
     $self->{'buildlist'} ||= 'buildlist';
 
     my $command = $self->_mk_cmnd(" --separate-output --".$self->{'buildlist'},@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'menuheight'}||$args->{'listheight'}||'5') . '"';
@@ -660,7 +660,7 @@ sub treeview {
     $self->{'treeview'} ||= 'treeview';
 
     my $command = $self->_mk_cmnd(" --separate-output --".$self->{'treeview'},@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'menuheight'}||$args->{'listheight'}||'5') . '"';
@@ -708,7 +708,7 @@ sub calendar {
     my $args = $self->_pre($caller,@_);
 
     my $command = $self->_mk_cmnd(" --separate-output --calendar",@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'14') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'day'}||'1') . '"';
@@ -742,7 +742,7 @@ sub timebox {
     my $args = $self->_pre($caller,@_);
 
     my $command = $self->_mk_cmnd(" --separate-output --timebox",@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'14') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
 
@@ -774,7 +774,7 @@ sub yesno {
     my $args = $self->_pre($caller,@_);
 
     my $command = $self->_mk_cmnd(' --yesno',@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     my $rv = $self->command_state($command);
@@ -828,7 +828,7 @@ sub inputbox {
     }
 
     my $command = $self->_mk_cmnd($cmnd_prefix,@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
 
@@ -902,7 +902,7 @@ sub msgbox {
     $args->{'msgbox'} ||= 'msgbox';
 
     my $command = $self->_mk_cmnd(' --'.$args->{'msgbox'},@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . (($args->{'wait'}) ? $args->{'wait'} * 1000 : ($args->{'timeout'}||'5000')) . '"'
@@ -991,7 +991,7 @@ sub menu {
     my $args = $self->_pre($caller,@_);
 
     my $command = $self->_mk_cmnd(" --separate-output --menu",@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'menuheight'}||$args->{'listheight'}||'5') . '"';
@@ -1038,7 +1038,7 @@ sub checklist {
     $self->{'checklist'} ||= 'checklist';
 
     my $command = $self->_mk_cmnd(" --separate-output --".$self->{'checklist'},@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'menuheight'}||$args->{'listheight'}||'5') . '"';
@@ -1089,7 +1089,7 @@ sub radiolist {
     $self->{'radiolist'} ||= 'radiolist';
 
     my $command = $self->_mk_cmnd(" --separate-output --".$self->{'radiolist'},@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'menuheight'}||$args->{'listheight'}||'5') . '"';
@@ -1214,7 +1214,7 @@ sub progress_start {
     }
 
     my $command = $self->_mk_cmnd(" --progress",@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'maxdots'}||'') . '"' unless not $args->{'maxdots'} and not $args->{'msglen'};
@@ -1250,7 +1250,7 @@ sub gauge_start {
     }
 
     my $command = $self->_mk_cmnd(" --gauge",@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'percentage'}||'0') . '"';

@@ -18,8 +18,6 @@ package UI::Dialog::Backend::ASCII;
 ###############################################################################
 use 5.006;
 use strict;
-use warnings;
-use diagnostics;
 use Carp;
 use UI::Dialog::Backend;
 use Time::HiRes qw( sleep );
@@ -27,7 +25,7 @@ use Time::HiRes qw( sleep );
 BEGIN {
     use vars qw( $VERSION @ISA );
     @ISA = qw( UI::Dialog::Backend );
-    $VERSION = '1.02';
+    $VERSION = '1.03';
 }
 
 $| = 1;							# turn on autoflush
@@ -579,11 +577,10 @@ sub textbox {
 			system($args->{'pager'}." ".$args->{'path'});
 			$rv = $? >> 8;
 		} else {
-			my $TS = $/; undef($/);
 			open(ATBFILE,"<".$args->{'path'});
+			local $/;
 			my $data = <ATBFILE>;
 			close(ATBFILE);
-			$/ = $TS;
 			$self->_PRINT($args->{'usestderr'},$data);
 		}
 		$ENV{'PATH'} = $ENV_PATH;

@@ -18,8 +18,6 @@ package UI::Dialog::Backend::XOSD;
 ###############################################################################
 use 5.006;
 use strict;
-use warnings;
-use diagnostics;
 use Carp;
 use UI::Dialog::Backend;
 use FileHandle;
@@ -37,7 +35,7 @@ use FileHandle;
 BEGIN {
     use vars qw( $VERSION @ISA );
     @ISA = qw( UI::Dialog::Backend );
-    $VERSION = '1.02';
+    $VERSION = '1.03';
 }
 
 sub new {
@@ -155,11 +153,9 @@ sub file {
     my $opts = $self->_gen_opt_str($args);
     if (-r $args->{'file'}) {
 		if (open(FILE,"<".$args->{'file'})) {
-			my $TS = $/;
-			undef($/);
+			local $/;
 			my $text = <FILE>;
 			close(FILE);
-			$/ = $TS;
 			$text =~ s!\t!    !g;
 			if (open(XOSD,"| ".$self->{'_opts'}->{'bin'}.$opts." -")) {
 				print XOSD ($text||'')."\n";

@@ -1,3 +1,19 @@
+1.03 - Wed, 18 Feb 2004 11:35:54 -0500
+  * fix for running in X but in a terminal. If there are no gui dialog variants it will now fallback to available console based variants.
+  * Stopped undeffing for a slurp and instead use the localized slurp. (doh! my bad!)
+  * Use tempfile() instead of File::Temp::mktemp.
+  * POD fix for UI::Dialog referring to menubox() when it should be menu()
+  * Whiptail needs the width adjusted by 4 to take into account the borders.
+  * Added in 'literal' option to supress the organization and translation of text.
+  * UI::Dialog::Backend::CDialog no longer has hard coded version dependancies (Debian unstable updates no longer break UI::Dialog::Backend::CDialog).
+  * UI::Dialog::Backend::CDialog no longer messes up by redirecting STDERR to STDOUT via 2>&1 in system() calls
+  * Fixed security issues with CDialog and Whiptail backends and their usage of the temp files.
+  * Removed all warning and diagnostic pragmas.
+  * Added/Updated CONTRIBUTORS file with special thanks to Julian Gilbey and Alfonso E.M.
+  * ((Note to self... remember to add my name at the end of each changelog entry and date to the version line))
+
+ -- Kevin C. Krinke <kckrinke@opendoorsoftware.com>  
+
 1.02
   * Added editbox() widget to UI::Dialog::GNOME
   * Updated UI::Dialog::GNOME pod to include editbox() widget with a gdialog warning

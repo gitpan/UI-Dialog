@@ -18,15 +18,13 @@ package UI::Dialog::KDE;
 ###############################################################################
 use 5.006;
 use strict;
-use warnings;
-use diagnostics;
 use Carp;
 use UI::Dialog;
 
 BEGIN {
     use vars qw( $VERSION @ISA );
     @ISA = qw( UI::Dialog );
-    $VERSION = '1.02';
+    $VERSION = '1.03';
 }
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

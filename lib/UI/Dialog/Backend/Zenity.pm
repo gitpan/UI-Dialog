@@ -18,8 +18,6 @@ package UI::Dialog::Backend::Zenity;
 ###############################################################################
 use 5.006;
 use strict;
-use warnings;
-use diagnostics;
 use FileHandle;
 use Cwd qw( abs_path );
 use Carp;
@@ -28,7 +26,7 @@ use UI::Dialog::Backend;
 BEGIN {
     use vars qw( $VERSION @ISA );
     @ISA = qw( UI::Dialog::Backend );
-    $VERSION = '1.02';
+    $VERSION = '1.03';
 }
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -43,6 +41,7 @@ sub new {
     bless($self, $class);
     $self->{'_state'} = {};
     $self->{'_opts'} = {};
+	$self->{'_opts'}->{'literal'} = $cfg->{'literal'} || 0;
     $self->{'_opts'}->{'debug'} = $cfg->{'debug'} || undef();
     $self->{'_opts'}->{'window-icon'} = $cfg->{'window-icon'} || undef();
     $self->{'_opts'}->{'title'} = $cfg->{'title'} || undef();
@@ -183,7 +182,8 @@ sub question {
     my $args = $self->_pre($caller,@_);
 
     my $command = $self->_mk_cmnd(" --question",$args);
-    $command .= ' --text "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"' unless not $args->{'text'};
+    $command .= ' --text "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"' unless not $args->{'text'};
+
 
     my $rv = $self->command_state($command);
     $self->rv($rv||'null');
@@ -223,7 +223,7 @@ sub entry {
     my $args = $self->_pre($caller,@_);
 
     my $command = $self->_mk_cmnd(" --entry",$args);
-    $command .= ' --text "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"' unless not $args->{'text'};
+    $command .= ' --text "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"' unless not $args->{'text'};
     $command .= ' --hide-text' unless not $args->{'hide-text'};
     $command .= ' --entry-text "' . ($args->{'entry'}||$args->{'init'}) . '"'
      unless not $args->{'entry'} and not $args->{'init'};
@@ -263,7 +263,7 @@ sub info {
 
     my $command = $self->_mk_cmnd((($args->{'error'}) ? " --error" :
 								   ($args->{'warning'}) ? " --warning" : " --info"),$args);
-    $command .= ' --text "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"' unless not $args->{'text'};
+    $command .= ' --text "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"' unless not $args->{'text'};
 
     my $rv = $self->command_state($command);
     $self->rv($rv||'null');
@@ -346,7 +346,7 @@ sub list {
     #: not quite sure how to implement the editability...
     #    $command .= ' --editable' unless not $args->{'editable'};
     #: --text is not implemented for list widgets, yet...
-    #    $command .= ' --text "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"' unless not $args->{'text'};
+    #    $command .= ' --text "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"' unless not $args->{'text'};
 
     if ($args->{'list'} && ($args->{'checklist'} || $args->{'radiolist'})) {
 		if ($args->{'checklist'} || $args->{'radiolist'}) {
@@ -453,7 +453,7 @@ sub calendar {
     my $args = $self->_pre($caller,@_);
 
     my $command = $self->_mk_cmnd(" --calendar",$args);
-    $command .= ' --text "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"' unless not $args->{'text'};
+    $command .= ' --text "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"' unless not $args->{'text'};
     $command .= ' --date-format "' . ($args->{'date-format'}||'%d/%m/%y') . '"';
     $command .= ' --day "' . $args->{'day'} . '"' unless not $args->{'day'};
     $command .= ' --month "' . $args->{'month'} . '"' unless not $args->{'month'};
@@ -495,7 +495,7 @@ sub gauge_start {
     }
 
     my $command = $self->_mk_cmnd(" --progress",$args);
-    $command .= ' --text "' . ($self->_organize_text($args->{'text'},$args->{'width'})||' ') . '"' unless not $args->{'text'};
+    $command .= ' --text "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'},$args->{'width'}))||' ') . '"' unless not $args->{'text'};
     $command .= ' --percentage "' . ($args->{'percentage'}||'0') . '"';
     $command .= ' --pulsate' unless not $args->{'pulsate'};
 

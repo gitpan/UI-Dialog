@@ -18,13 +18,11 @@ package UI::Dialog;
 ###############################################################################
 use 5.006;
 use strict;
-use warnings;
-use diagnostics;
 use Carp;
 
 BEGIN {
     use vars qw($VERSION);
-    $VERSION = '1.02';
+    $VERSION = '1.03';
 }
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -47,11 +45,8 @@ sub new {
 			# we're running free of a terminal
 			$cfg->{'order'} = [ 'zenity', 'xdialog', 'gdialog', 'kdialog' ];
 		} else {
-			#: we're running in a terminal, currently we do the same as a dumb term
-			#: but I'm not 100% sure that this is the right thing to do.
-			$cfg->{'order'} = [ 'zenity', 'xdialog', 'gdialog', 'kdialog' ];
-			#: this would the the alternative:
-			#$cfg->{'order'} = [ 'whiptail', 'cdialog', 'ascii' ];
+			# we're running in a terminal
+            $cfg->{'order'} = [ 'zenity', 'xdialog', 'gdialog', 'kdialog', 'whiptail', 'cdialog', 'ascii' ];
 		}
     }
     # verify and repair the order
@@ -672,7 +667,7 @@ TRUE (1) if the response is OK and FALSE (0) for anything else.
 
 =over 2
 
-=head2 menubox( )
+=head2 menu( )
 
 =over 4
 
@@ -680,10 +675,10 @@ TRUE (1) if the response is OK and FALSE (0) for anything else.
 
 =over 6
 
- my $selection1 = $d->menubox( text => 'Select one:',
-                               list => [ 'tag1', 'item1',
-                                         'tag2', 'item2',
-                                         'tag3', 'item3' ] );
+ my $selection1 = $d->menu( text => 'Select one:',
+                            list => [ 'tag1', 'item1',
+                                      'tag2', 'item2',
+                                      'tag3', 'item3' ] );
 
 =back
 

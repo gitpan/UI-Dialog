@@ -18,8 +18,6 @@ package UI::Dialog::Backend::CDialog;
 ###############################################################################
 use 5.006;
 use strict;
-use warnings;
-use diagnostics;
 use FileHandle;
 use Carp;
 use Cwd qw( abs_path );
@@ -29,7 +27,7 @@ use UI::Dialog::Backend;
 BEGIN {
     use vars qw( $VERSION @ISA );
     @ISA = qw( UI::Dialog::Backend );
-    $VERSION = '1.02';
+    $VERSION = '1.03';
 }
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -44,6 +42,7 @@ sub new {
     bless($self, $class);
     $self->{'_state'} = {};
     $self->{'_opts'} = {};
+	$self->{'_opts'}->{'literal'} = $cfg->{'literal'} || 0;
     $self->{'_opts'}->{'callbacks'} = $cfg->{'callbacks'} || undef();
     $self->{'_opts'}->{'timeout'} = $cfg->{'timeout'} || 0;
     $self->{'_opts'}->{'wait'} = $cfg->{'wait'} || 0;
@@ -99,13 +98,13 @@ sub _determine_dialog_variant {
 		# We consider cdialog to be a colour supporting dialog variant all others
 		# are non-colourized and support only the base functionality :(
 		my $ver = $1;
-		if ($ver =~ /20030130|20030302|20030308|20030720|20030910|20031002$/) {
+		if ($ver =~ /-200[3-9]/) {
 			$self->{'_variant'} = "cdialog";
 			# these versions support colours :)
 			$self->{'_opts'}->{'colours'} = 1;
-		}						# Debian Sid
-		if ($ver =~ /20020814$/) { $self->{'_variant'} = "dialog"; } # Debian Woody
-		if ($ver =~ /20020519$/) { $self->{'_variant'} = "dialog"; } # RedHat 8
+		} else {
+			$self->{'_variant'} = "dialog";
+		}
     } else { $self->{'_variant'} = "dialog"; }
     undef($str);
 }
@@ -178,6 +177,51 @@ sub _mk_cmnd {
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #: Override Inherited Methods
 #:
+sub command_state {
+    my $self = $_[0];
+    my $cmnd = $_[1];
+    $self->_debug("".$cmnd);
+    system($cmnd . " 2> /dev/null");
+    return($? >> 8);
+}
+sub command_string {
+    my $self = $_[0];
+    my $cmnd = $_[1];
+    $self->_debug($cmnd);
+    $self->gen_tempfile_name(); # don't accept the first result
+    my $tmpfile = $self->gen_tempfile_name();
+    my $text;
+    system($cmnd." 2> ".$tmpfile);
+    my $rv = $? >> 8;
+    if (-f $tmpfile # don't assume the file exists
+		&& open(WHIPF,"<".$tmpfile)) {
+		local $/;
+		$text = <WHIPF>;
+		close(WHIPF);
+		unlink($tmpfile);
+    } else { $text = ""; }
+    return($text) unless defined wantarray;
+    return (wantarray) ? ($rv,$text) : $text;
+}
+sub command_array {
+    my $self = $_[0];
+    my $cmnd = $_[1];
+    $self->_debug($cmnd);
+    $self->gen_tempfile_name(); # don't accept the first result
+    my $tmpfile = $self->gen_tempfile_name();
+    my $text;
+    system($cmnd." 2> ".$tmpfile);
+    my $rv = $? >> 8;
+    if (-f $tmpfile # don't assume the file exists
+		&& open(WHIPF,"<".$tmpfile)) {
+		local $/;
+		$text = <WHIPF>;
+		close(WHIPF);
+		unlink($tmpfile);
+    } else { $text = ""; }
+    return([split("\n",$text)]) unless defined wantarray;
+    return (wantarray) ? ($rv,[split("\n",$text)]) : [split("\n",$text)];
+}
 sub _organize_text {
     my $self = $_[0];
     my $text = $_[1] || return();
@@ -308,7 +352,7 @@ sub yesno {
     my $args = $self->_pre($caller,@_);
 
     my $command = $self->_mk_cmnd(' --yesno',@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'})||' ') . '"';
+	$command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
 
@@ -343,7 +387,7 @@ sub inputbox {
     my $cmnd_prefix = ' --inputbox';
     if ($args->{'password'}) { $cmnd_prefix = ' --passwordbox'; }
     my $command = $self->_mk_cmnd($cmnd_prefix,@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'})||' ') . '"';
+	$command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'init'}||$args->{'entry'}||'') . '"'
@@ -383,7 +427,7 @@ sub msgbox {
     $args->{'msgbox'} ||= 'msgbox';
 
     my $command = $self->_mk_cmnd(' --'.$args->{'msgbox'},@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
 
@@ -450,7 +494,7 @@ sub menu {
     my $args = $self->_pre($caller,@_);
 
     my $command = $self->_mk_cmnd(" --menu",@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'menuheight'}||$args->{'listheight'}||'5') . '"';
@@ -495,7 +539,7 @@ sub checklist {
     $self->{'checklist'} ||= 'checklist';
 
     my $command = $self->_mk_cmnd(" --".$self->{'checklist'},@_,'separate-output',1);
-    $command .= ' "' . ($self->_organize_text($args->{'text'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'menuheight'}||$args->{'listheight'}||'5') . '"';
@@ -544,7 +588,7 @@ sub radiolist {
     $self->{'radiolist'} ||= 'radiolist';
 
     my $command = $self->_mk_cmnd(" --".$self->{'radiolist'},@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'menuheight'}||$args->{'listheight'}||'5') . '"';
@@ -835,7 +879,7 @@ sub gauge_start {
     }
 
     my $command = $self->_mk_cmnd(" --gauge",@_);
-    $command .= ' "' . ($self->_organize_text($args->{'text'})||' ') . '"';
+    $command .= ' "' . (($args->{'literal'} ? $args->{'text'} : $self->_organize_text($args->{'text'}))||' ') . '"';
     $command .= ' "' . ($args->{'height'}||'20') . '"';
     $command .= ' "' . ($args->{'width'}||'65') . '"';
     $command .= ' "' . ($args->{'percentage'}||'0') . '"';
