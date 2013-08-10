@@ -1,6 +1,6 @@
 package UI::Dialog::Backend;
 ###############################################################################
-#  Copyright (C) 2004  Kevin C. Krinke <kckrinke@opendoorsoftware.com>
+#  Copyright (C) 2013  Kevin C. Krinke <kevin@krinke.ca>
 #
 #  This library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public
@@ -25,7 +25,7 @@ use Text::Wrap qw( wrap );
 
 BEGIN {
     use vars qw($VERSION);
-    $VERSION = '1.08';
+    $VERSION = '1.09';
 }
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -222,8 +222,13 @@ sub gen_tempfile_name {
     if (eval("require File::Temp; 1")) {
 		use File::Temp qw( tempfile );
 		my ($fh,$filename) = tempfile( UNLINK => 1 ) or croak( "Can't create tempfile: $!" );
-		return($filename) unless wantarray;
-		return($fh,$filename);
+        if (wantarray) {
+            return($fh,$filename);
+        } else {
+            close($fh); # actually required on win32
+            return($filename);
+        }
+        return($fh,$filename);
     } else {
 		my $mktemp = $self->_find_bin('mktemp');
 		if ($mktemp && -x $mktemp) {

@@ -1,6 +1,6 @@
 package UI::Dialog::Backend::Nautilus;
 ###############################################################################
-#  Copyright (C) 2004  Kevin C. Krinke <kckrinke@opendoorsoftware.com>
+#  Copyright (C) 2013  Kevin C. Krinke <kevin@krinke.ca>
 #
 #  This library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public
@@ -27,7 +27,7 @@ use Carp;
 
 BEGIN {
     use vars qw($VERSION);
-    $VERSION = '1.08';
+    $VERSION = '1.09';
 }
 
 sub new {

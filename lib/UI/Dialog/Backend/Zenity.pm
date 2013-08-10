@@ -1,6 +1,6 @@
 package UI::Dialog::Backend::Zenity;
 ###############################################################################
-#  Copyright (C) 2004  Kevin C. Krinke <kckrinke@opendoorsoftware.com>
+#  Copyright (C) 2013  Kevin C. Krinke <kevin@krinke.ca>
 #
 #  This library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,7 @@ use UI::Dialog::Backend;
 BEGIN {
     use vars qw( $VERSION @ISA );
     @ISA = qw( UI::Dialog::Backend );
-    $VERSION = '1.08';
+    $VERSION = '1.09';
 }
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -364,7 +364,7 @@ sub list {
 
     my $command = $self->_mk_cmnd(" --list",$args);
     $command .= ($args->{'checklist'}) ? ' --checklist' : ($args->{'radiolist'}) ? ' --radiolist' : "";
-    $command .= ' --separator "\n"';
+    $command .= ' --separator $\'\n\'';
     #: not quite sure how to implement the editability...
     #    $command .= ' --editable' unless not $args->{'editable'};
     #: --text is not implemented for list widgets, yet...
@@ -446,6 +446,38 @@ sub fselect {
     $args->{'path'} =~ s!/+!/!g;
 
     my $command = $self->_mk_cmnd(" --file-selection",$args);
+    $command .= ' --filename "' . ($args->{'path'}||abs_path()) . '"';
+
+    $self->_debug("fselect: ".$args->{'path'});
+    my ($rv,$file) = $self->command_string($command);
+    $self->rv($rv||'null');
+    $self->ra('null');
+    $self->rs('null');
+    my $this_rv;
+    if ($rv && $rv >= 1) {
+		$this_rv = 0;
+    } else {
+		$self->ra($file);
+		$self->rs($file);
+		$this_rv = $file;
+    }
+    $self->_post($args);
+    return($this_rv);
+}
+
+#:+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#: directory select
+sub dselect {
+    my $self = shift();
+    my $caller = (caller(1))[3] || 'main';
+    $caller = ($caller =~ /^UI\:\:Dialog\:\:Backend\:\:/) ? ((caller(2))[3]||'main') : $caller;
+    if ($_[0] && $_[0] eq 'caller') { shift(); $caller = shift(); }
+    my $args = $self->_pre($caller,@_);
+
+    $args->{'path'} = (-d $args->{'path'}) ? $args->{'path'}."/" : $args->{'path'};
+    $args->{'path'} =~ s!/+!/!g;
+
+    my $command = $self->_mk_cmnd(" --file-selection --directory",$args);
     $command .= ' --filename "' . ($args->{'path'}||abs_path()) . '"';
 
     $self->_debug("fselect: ".$args->{'path'});

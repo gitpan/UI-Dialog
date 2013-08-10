@@ -1,6 +1,6 @@
 package UI::Dialog::Backend::CDialog;
 ###############################################################################
-#  Copyright (C) 2004  Kevin C. Krinke <kckrinke@opendoorsoftware.com>
+#  Copyright (C) 2013  Kevin C. Krinke <kevin@krinke.ca>
 #
 #  This library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public
@@ -18,6 +18,7 @@ package UI::Dialog::Backend::CDialog;
 ###############################################################################
 use 5.006;
 use strict;
+use Config;
 use FileHandle;
 use Carp;
 use Cwd qw( abs_path );
@@ -27,7 +28,7 @@ use UI::Dialog::Backend;
 BEGIN {
     use vars qw( $VERSION @ISA );
     @ISA = qw( UI::Dialog::Backend );
-    $VERSION = '1.08';
+    $VERSION = '1.09';
 }
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -44,12 +45,13 @@ sub new {
     $self->{'_opts'} = {};
 
 	#: Dynamic path discovery...
+	my $path_sep = $Config::Config{path_sep};
 	my $CFG_PATH = $cfg->{'PATH'};
 	if ($CFG_PATH) {
 		if (ref($CFG_PATH) eq "ARRAY") { $self->{'PATHS'} = $CFG_PATH; }
-		elsif ($CFG_PATH =~ m!:!) { $self->{'PATHS'} = [ split(/:/,$CFG_PATH) ]; }
+		elsif ($CFG_PATH =~ m!$path_sep!) { $self->{'PATHS'} = [ split(/$path_sep/,$CFG_PATH) ]; }
 		elsif (-d $CFG_PATH) { $self->{'PATHS'} = [ $CFG_PATH ]; }
-	} elsif ($ENV{'PATH'}) { $self->{'PATHS'} = [ split(/:/,$ENV{'PATH'}) ]; }
+	} elsif ($ENV{'PATH'}) { $self->{'PATHS'} = [ split(/$path_sep/,$ENV{'PATH'}) ]; }
 	else { $self->{'PATHS'} = ''; }
 
 	$self->{'_opts'}->{'literal'} = $cfg->{'literal'} || 0;
@@ -64,6 +66,7 @@ sub new {
     $self->{'_opts'}->{'percentage'} = $cfg->{'percentage'} || 1;
     $self->{'_opts'}->{'colours'} = ($cfg->{'colours'} || $cfg->{'colors'}) ? 1 : 0;
     $self->{'_opts'}->{'bin'} ||= $self->_find_bin('dialog');
+    $self->{'_opts'}->{'bin'} ||= $self->_find_bin('dialog.exe') if $^O =~ /win32/i;
     $self->{'_opts'}->{'autoclear'} = $cfg->{'autoclear'} || 0;
     $self->{'_opts'}->{'clearbefore'} = $cfg->{'clearbefore'} || 0;
     $self->{'_opts'}->{'clearafter'} = $cfg->{'clearafter'} || 0;
@@ -94,6 +97,8 @@ sub new {
     $self->{'_opts'}->{'tab-len'} = $cfg->{'tab-len'} || 0;
     $self->{'_opts'}->{'listheight'} = $cfg->{'listheight'} || $cfg->{'menuheight'} || 5;
     $self->{'_opts'}->{'formheight'} = $cfg->{'formheight'} || $cfg->{'listheight'} || 5;
+    $self->{'_opts'}->{'yes-label'} = $cfg->{'yes-label'} || undef();
+    $self->{'_opts'}->{'no-label'} = $cfg->{'no-label'} || undef();
 
     $self->_determine_dialog_variant();
     return($self);
@@ -184,6 +189,8 @@ sub _mk_cmnd {
 		$cmnd .= ' --shadow' unless not $args->{'shadow'};
 		$cmnd .= ' --tab-correct' unless not $args->{'tab-correct'};
 		$cmnd .= ' --tab-len "'.$args->{'tab-len'}.'"' unless not $args->{'tab-len'};
+		$cmnd .= ' --yes-label "'.$args->{'yes-label'}.'"' unless not $args->{'yes-label'};
+		$cmnd .= ' --no-label "'.$args->{'no-label'}.'"' unless not $args->{'no-label'};
 
 		# --item-help                        #<-- NEEDS WORK
 		# --no-kill                          #<-- tailboxbg only
@@ -200,7 +207,8 @@ sub command_state {
     my $self = $_[0];
     my $cmnd = $_[1];
     $self->_debug("".$cmnd);
-    system($cmnd . " 2> /dev/null");
+    my $null_dev = $^O =~ /win32/i ? 'NUL:' : '/dev/null';
+    system($cmnd . " 2> $null_dev");
     return($? >> 8);
 }
 sub command_string {
@@ -274,6 +282,8 @@ sub _organize_text {
 			  && (length($s_line) <= $self->{'max-scale'});
 		}
     }
+
+    my $new_line = $^O =~ /win32/i ? '\n' : "\n";
     foreach my $line (@array) {
 		my $pad;
 		my $s_line = $self->_strip_text($line);
@@ -290,8 +300,8 @@ sub _organize_text {
 				#		$pad = (($self->{'_opts'}->{'width'}) - length($s_line));
 			}
 		}
-		if ($pad) { $text .= (" " x $pad).$line."\n"; }
-		else { $text .= $line."\n"; }
+		if ($pad) { $text .= (" " x $pad).$line.$new_line; }
+		else { $text .= $line . $new_line; }
     }
     return($self->_filter_text($text));
 }
