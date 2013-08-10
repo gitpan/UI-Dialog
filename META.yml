@@ -1,11 +1,22 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
-name:         UI-Dialog
-version:      1.09
-version_from: lib/UI/Dialog.pm
-installdirs:  site
+--- #YAML:1.0
+name:               UI-Dialog
+version:            1.09
+abstract:           ~
+author:
+    - Kevin C. Krinke <kevin@krinke.ca>
+license:            unknown
+distribution_type:  module
+configure_requires:
+    ExtUtils::MakeMaker:  0
+build_requires:
+    ExtUtils::MakeMaker:  0
 requires:
-    Text::Wrap:                    0
-
-distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.17
+    Text::Wrap:  0
+no_index:
+    directory:
+        - t
+        - inc
+generated_by:       ExtUtils::MakeMaker version 6.56
+meta-spec:
+    url:      http://module-build.sourceforge.net/META-spec-v1.4.html
+    version:  1.4
